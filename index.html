@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>K-Mappy | Boolean Equation Solver</title>
+    <link rel="stylesheet" href="style.css" />
+    <link rel="icon" href="k-logo.png" sizes="32x32" />
+  </head>
+     <div class="big-container"> 
+      <div class="container">
+      <h1>K-Mappy</h1>
+
+      <!-- Variable selection -->
+      <div class="variable-selector">
+        <label for="numVars">Number of Variables:</label>
+        <select id="numVars">
+          <option value="2">2 Variables</option>
+          <option value="3" selected>3 Variables</option>
+          <option value="4">4 Variables</option>
+        </select>
+        <button id="generateBtn">Generate K-map</button>
+      </div>
+
+      <!-- Input for SOP/POS/D -->
+      <div class="input-section">
+        <input type="text" id="minterms" placeholder="Enter SOP/POS/D" />
+        <button id="solveBtn">Solve</button>
+      </div>
+
+      <!-- K-map container -->
+      <div id="kmap" class="kmap-container"></div>
+      <div class="result">
+        <h2>Result:</h2>
+        <p id="output">F = ?</p>
+      </div>
+    </div>
+  </div>
+
+    <script src="script.js"></script>
+    <footer class="footer">
+      <p>© 2026 K-Mappy | Developed by Eyasu Tesfaye | Powered by sheer Patience </p>
+    </footer>
+  </body>
+</html>
