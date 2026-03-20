@@ -1,7 +1,5 @@
 # K-Map Solver
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-
 A **dynamic Karnaugh Map (K-map) solver** built with **HTML, CSS, and JavaScript**. This tool allows users to input SOP (Sum of Products), POS (Product of Sums), and Don't Care terms, automatically generates the K-map, visually groups adjacent 1s or 0s, and computes the simplified Boolean expressions. The UI is responsive and works on desktop, tablet, and mobile screens.
 
 ---
@@ -19,14 +17,6 @@ A **dynamic Karnaugh Map (K-map) solver** built with **HTML, CSS, and JavaScript
 - **Simplified Boolean expression output**
 - **Responsive design** for mobile and tablet devices
 - **Hardcoded common K-map solutions** for edge cases
-
----
-
-## Demo
-
-![K-map Screenshot](screenshot.png)
-
-_Screenshot of the solver in action showing SOP and POS highlighting and simplified output._
 
 ---
 
