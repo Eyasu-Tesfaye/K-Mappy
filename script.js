@@ -436,6 +436,28 @@ function unique(groups) {
   });
 }
 
+// ------------------ CUSTOM DROPDOWN BEHAVIOR ------------------
+const dropdown = document.getElementById("numVarsDropdown");
+const hiddenInput = document.getElementById("numVars");
+const selected = dropdown.querySelector(".selected");
+const options = dropdown.querySelector(".options");
+
+selected.addEventListener("click", () => {
+  options.style.display = options.style.display === "block" ? "none" : "block";
+});
+
+options.querySelectorAll("div").forEach((opt) => {
+  opt.addEventListener("click", () => {
+    selected.childNodes[0].textContent = opt.textContent; // update only text, keep arrow
+    hiddenInput.value = opt.dataset.value;
+    options.style.display = "none";
+  });
+});
+
+document.addEventListener("click", (e) => {
+  if (!dropdown.contains(e.target)) options.style.display = "none";
+});
+
 // ------------------ INIT ------------------
 generateKmap(3);
 generateBtn.addEventListener("click", () => {

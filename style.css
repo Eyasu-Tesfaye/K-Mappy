@@ -71,6 +71,49 @@ button:hover {
   cursor: pointer;
 }
 
+.custom-dropdown {
+  position: relative;
+  width: 120px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.custom-dropdown .selected {
+  padding: 6px 10px;
+  border-radius: 5px;
+  background: #1e293b;
+  color: white;
+  font-size: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.custom-dropdown .selected .arrow {
+  font-size: 12px;
+  margin-left: 10px;
+}
+
+.custom-dropdown .options {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 100%;
+  background: #1e293b;
+  border-radius: 5px;
+  display: none;
+  z-index: 100;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+}
+
+.custom-dropdown .options div {
+  padding: 6px 10px;
+}
+
+.custom-dropdown .options div:hover {
+  background: #334155;
+}
+
 /* K-map grid */
 .kmap-container {
   display: grid;

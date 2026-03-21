@@ -14,11 +14,18 @@
       <!-- Variable selection -->
       <div class="variable-selector">
         <label for="numVars">Number of Variables:</label>
-        <select id="numVars">
-          <option value="2">2 Variables</option>
-          <option value="3" selected>3 Variables</option>
-          <option value="4">4 Variables</option>
-        </select>
+
+        <!-- Custom Dropdown -->
+        <div class="custom-dropdown" id="numVarsDropdown">
+          <div class="selected">3 Variables <span class="arrow">&#9662;</span></div>
+          <div class="options">
+            <div data-value="2">2 Variables</div>
+            <div data-value="3">3 Variables</div>
+            <div data-value="4">4 Variables</div>
+          </div>
+        </div>
+        <input type="hidden" id="numVars" value="3">
+
         <button id="generateBtn">Generate K-map</button>
       </div>
 
