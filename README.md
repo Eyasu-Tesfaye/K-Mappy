@@ -9,9 +9,6 @@ A **dynamic Karnaugh Map (K-map) solver** built with **HTML, CSS, and JavaScript
 - **Dynamic K-map generation** for 2, 3, and 4 variables
 - Input terms using **SOP(), POS(), D()** notation
 - **Automatic highlighting**:
-  - SOP → blue
-  - POS → red
-  - Don't Care → yellow (or purple for lone X)
 - **Textbook-style labels** on rows and columns for all variable counts
 - **Visual grouping** of adjacent cells (horizontal, vertical, and edge wrapping)
 - **Simplified Boolean expression output**
