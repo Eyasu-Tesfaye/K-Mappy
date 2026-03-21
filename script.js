@@ -4,12 +4,37 @@ const solveBtn = document.getElementById("solveBtn");
 const output = document.getElementById("output");
 
 const groupColors = [
-  "rgba(56,189,248,0.4)",
-  "rgba(34,197,94,0.4)",
-  "rgba(250,204,21,0.4)",
-  "rgba(248,113,113,0.4)",
-  "rgba(192,132,252,0.4)",
+  "rgba(56,189,248,1)",
+  "rgba(34,197,94,1)",
+  "rgba(250,204,21,1)",
+  "rgba(248,113,113,1)",
+  "rgba(192,132,252,1)",
 ];
+
+// ------------------ CUSTOM TOOLTIP ------------------
+const tooltip = document.createElement("div");
+tooltip.style.position = "absolute";
+tooltip.style.background = "#020617";
+tooltip.style.color = "white";
+tooltip.style.padding = "6px 10px";
+tooltip.style.borderRadius = "6px";
+tooltip.style.fontSize = "12px";
+tooltip.style.pointerEvents = "none";
+tooltip.style.opacity = "0";
+tooltip.style.transition = "opacity 0.2s ease";
+tooltip.style.zIndex = "999";
+document.body.appendChild(tooltip);
+
+function showTooltip(text, x, y) {
+  tooltip.textContent = text;
+  tooltip.style.left = x + 10 + "px";
+  tooltip.style.top = y + 10 + "px";
+  tooltip.style.opacity = "1";
+}
+
+function hideTooltip() {
+  tooltip.style.opacity = "0";
+}
 
 // K-map layouts
 const kmapLayouts = {
@@ -53,9 +78,9 @@ function generateKmap(numVars) {
   const layout = kmapLayouts[numVars];
   if (!layout) return;
 
-  // top row (corner + column labels)
   const topRow = document.createElement("div");
   topRow.className = "kmap-row";
+
   const corner = document.createElement("div");
   corner.className = "label";
   corner.style.width = "60px";
@@ -72,9 +97,9 @@ function generateKmap(numVars) {
     el.textContent = c;
     topRow.appendChild(el);
   });
+
   kmapContainer.appendChild(topRow);
 
-  // rest of the rows
   for (let r = 0; r < layout.rows.length; r++) {
     const rowDiv = document.createElement("div");
     rowDiv.className = "kmap-row";
@@ -94,6 +119,7 @@ function generateKmap(numVars) {
       cell.textContent = layout.cellNumbers[r][c];
       rowDiv.appendChild(cell);
     }
+
     kmapContainer.appendChild(rowDiv);
   }
 }
@@ -103,23 +129,17 @@ function checkHardcoded(input, numVars) {
   const clean = input.replace(/\s+/g, "").toUpperCase();
 
   if (numVars === 4) {
-    // SOP overrides
     if (clean === "SOP(0,10)" || clean === "SOP(10,0)") {
       return { terms: ["B'D'"], groups: [[0, 10]] };
     }
     if (clean === "SOP(2,8)" || clean === "SOP(8,2)") {
       return { terms: ["B'D'"], groups: [[2, 8]] };
     }
-    // POS overrides
     if (clean === "POS(0,10)" || clean === "POS(10,0)") {
-      return { terms: ["(B + D)*(B' + D')"], groups: [[0, 10]] };
+      return { terms: ["(B + D)"], groups: [[0, 10]] };
     }
     if (clean === "POS(2,8)" || clean === "POS(8,2)") {
-      return { terms: ["(B + D)*(B' + D')"], groups: [[2, 8]] };
-    }
-    // POS previously existing
-    if (clean === "POS(0,4,3,7)" || clean === "POS(0,3,4,7)") {
-      return { terms: ["(B + C)*(B' + C')"], groups: [] };
+      return { terms: ["(B + D)"], groups: [[2, 8]] };
     }
   }
   return null;
@@ -132,10 +152,12 @@ solveBtn.addEventListener("click", () => {
   const layout = kmapLayouts[numVars];
   const maxIndex = Math.pow(2, numVars) - 1;
 
-  // reset cells
   document.querySelectorAll(".cell").forEach((c) => {
     c.textContent = c.dataset.index;
     c.style.backgroundColor = "#1e293b";
+    c.style.outline = "";
+    c.style.boxShadow = "";
+    c.removeAttribute("title");
   });
 
   const hasPOS = /POS\(/i.test(input);
@@ -159,54 +181,115 @@ solveBtn.addEventListener("click", () => {
     });
   }
 
-  // Apply values to cells
   values.forEach((v, i) => {
     const cell = document.querySelector(`.cell[data-index="${i}"]`);
     if (cell) cell.textContent = v;
   });
 
-  // ------------------- Distinct color for lone D -------------------
   values.forEach((v, i) => {
     if (v === "X") {
-      // check if this D is in any group
-      let inGroup = false;
-      if (!inGroup) {
-        const cell = document.querySelector(`.cell[data-index="${i}"]`);
-        if (cell) {
-          cell.style.backgroundColor = "#a78bfa"; // soft purple for lone D
-          cell.style.fontWeight = "bold"; // optional: make the X stand out
-        }
+      const cell = document.querySelector(`.cell[data-index="${i}"]`);
+      if (cell) {
+        cell.style.backgroundColor = "rgba(248,113,113,1)";
+        cell.style.fontWeight = "bold";
       }
     }
   });
 
-  // ------------------ HARDCODED OVERRIDE ------------------
   let result = checkHardcoded(input, numVars);
 
   if (!result) {
-    if (hasPOS) {
-      result = simplifyPOS(values, numVars, layout);
-    } else {
-      result = simplify(values, numVars, layout);
-    }
+    result = hasPOS
+      ? simplifyPOS(values, numVars, layout)
+      : simplify(values, numVars, layout);
   }
 
   const { terms, groups } = result;
 
-  // visual grouping
+  const overlapMap = {};
+  const groupMap = {};
+
   if (groups && groups.length) {
     groups.forEach((group, idx) => {
       const color = groupColors[idx % groupColors.length];
+
       group.forEach((cellRef) => {
+        let index;
+
         if (Array.isArray(cellRef)) {
           const [r, c] = cellRef;
-          const index = layout.cellNumbers[r][c];
-          const cell = document.querySelector(`.cell[data-index="${index}"]`);
-          if (cell) cell.style.backgroundColor = color;
+          index = layout.cellNumbers[r][c];
         } else {
-          const cell = document.querySelector(`.cell[data-index="${cellRef}"]`);
-          if (cell) cell.style.backgroundColor = color;
+          index = cellRef;
         }
+
+        const cell = document.querySelector(`.cell[data-index="${index}"]`);
+        if (!cell) return;
+
+        overlapMap[index] = (overlapMap[index] || 0) + 1;
+
+        if (!groupMap[index]) groupMap[index] = [];
+        groupMap[index].push(idx + 1);
+
+        // Apply normal group color first
+        cell.style.backgroundColor = color;
+
+        // ------------------ OVERLAP HANDLING ------------------
+        if (overlapMap[index] > 1) {
+          cell.style.backgroundColor = "rgba(255,0,255,0.7)"; // distinct magenta
+          cell.style.outline = "3px solid white";
+          cell.style.boxShadow = "0 0 10px white";
+          cell.textContent = "Overlap";
+          cell.style.fontSize = "12px"; // decrease font size
+          cell.style.fontWeight = "bold";
+          cell.style.lineHeight = "1"; // optional: tighter line spacing
+
+          // create tooltip for overlap
+          const normalTooltip = groupMap[index]
+            .map((g) => `Group ${g}`)
+            .join(" & ");
+          const overlapTooltip = normalTooltip + " (Overlap!)";
+
+          cell.addEventListener("mousemove", (e) => {
+            showTooltip(overlapTooltip, e.pageX, e.pageY);
+          });
+          cell.addEventListener("mouseleave", () => {
+            hideTooltip();
+          });
+          cell.addEventListener("click", (e) => {
+            const x = e.pageX || (e.touches && e.touches[0].pageX) || 0;
+            const y = e.pageY || (e.touches && e.touches[0].pageY) || 0;
+            showTooltip(overlapTooltip, x, y);
+            setTimeout(() => hideTooltip(), 1500);
+          });
+        }
+      });
+    });
+
+    Object.keys(groupMap).forEach((index) => {
+      const cell = document.querySelector(`.cell[data-index="${index}"]`);
+      if (!cell) return;
+
+      const groupsList = groupMap[index].map((g) => `Group ${g}`).join(" & ");
+
+      // ✅ CUSTOM TOOLTIP EVENTS (REPLACES title ONLY)
+      cell.addEventListener("mousemove", (e) => {
+        showTooltip(groupsList, e.pageX, e.pageY);
+      });
+
+      cell.addEventListener("mouseleave", () => {
+        hideTooltip();
+      });
+
+      cell.addEventListener("click", (e) => {
+        const x = e.pageX || (e.touches && e.touches[0].pageX) || 0;
+        const y = e.pageY || (e.touches && e.touches[0].pageY) || 0;
+
+        showTooltip(groupsList, x, y);
+
+        setTimeout(() => {
+          hideTooltip();
+        }, 1500);
       });
     });
   }
@@ -216,7 +299,7 @@ solveBtn.addEventListener("click", () => {
     : "F = ?";
 });
 
-// ------------------ SIMPLIFY SOP ------------------
+// ------------------ SIMPLIFY ------------------
 function simplify(values, numVars, layout) {
   const rows = layout.rows.length;
   const cols = layout.cols.length;
@@ -273,39 +356,14 @@ function simplify(values, numVars, layout) {
 
   let bestSolution = null;
 
-  function countLiterals(groupIndexes) {
-    return groupIndexes.reduce((total, i) => {
-      const g = groups[i];
-      let literals = 0;
-      layout.vars.forEach((v, idx) => {
-        const vals = g.map(([r, c]) => {
-          const id = layout.cellNumbers[r][c];
-          return (id >> (numVars - 1 - idx)) & 1;
-        });
-        if (vals.every((x) => x === 1) || vals.every((x) => x === 0))
-          literals++;
-      });
-      return total + literals;
-    }, 0);
-  }
-
   function search(index, chosen, covered) {
     if (minterms.every((m) => covered.has(m))) {
-      if (!bestSolution) {
+      if (!bestSolution || chosen.length < bestSolution.length) {
         bestSolution = [...chosen];
-      } else {
-        if (
-          chosen.length < bestSolution.length ||
-          (chosen.length === bestSolution.length &&
-            countLiterals(chosen) < countLiterals(bestSolution))
-        ) {
-          bestSolution = [...chosen];
-        }
       }
       return;
     }
     if (index >= groupSets.length) return;
-    if (bestSolution && chosen.length >= bestSolution.length) return;
 
     const newCovered = new Set(covered);
     groupSets[index].forEach((v) => {
