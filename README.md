@@ -29,8 +29,8 @@ A **dynamic Karnaugh Map (K-map) solver** built with **HTML, CSS, and JavaScript
 1. Clone the repository:
 
 ```bash
-git clone https://github.com/<your-username>/kmap-solver.git
-cd kmap-solver
+git clone https://github.com/<your-username>/K-Mappy.git
+cd K-Mappy
 ```
 
 2. Open `index.html` in your browser.
