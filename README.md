@@ -1,4 +1,4 @@
-# K-Map Solver
+# K-Mappy | Your Handy K-Map Solver
 
 A **dynamic Karnaugh Map (K-map) solver** built with **HTML, CSS, and JavaScript**. This tool allows users to input SOP (Sum of Products), POS (Product of Sums), and Don't Care terms, automatically generates the K-map, visually groups adjacent 1s or 0s, and computes the simplified Boolean expressions. The UI is responsive and works on desktop, tablet, and mobile screens.
 
