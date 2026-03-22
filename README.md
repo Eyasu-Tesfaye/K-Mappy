@@ -21,10 +21,17 @@ A **dynamic Karnaugh Map (K-map) solver** built with **HTML, CSS, and JavaScript
 
 ### Prerequisites
 
-- Modern web browser (Chrome, Firefox, Edge, Safari)
+- Modern web browser
 - No additional installations required
 
 ### Usage
+
+1. Clone the repository:
+
+```bash
+git clone https://github.com/<your-username>/kmap-solver.git
+cd kmap-solver
+```
 
 2. Open `index.html` in your browser.
 
