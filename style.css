@@ -43,6 +43,31 @@ body {
   display: none;
 }
 
+/* Truth Table */
+table {
+  margin: 20px auto;
+  border-collapse: collapse;
+  background: #1e293b;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+th,
+td {
+  padding: 10px 15px;
+  border: 1px solid #334155;
+  text-align: center;
+}
+
+th {
+  background: #38bdf8;
+  color: black;
+}
+
+tr:nth-child(even) {
+  background: #0f172a;
+}
+
 /* Input */
 .input-section {
   margin-bottom: 20px;

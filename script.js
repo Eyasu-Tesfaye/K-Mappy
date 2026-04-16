@@ -29,6 +29,50 @@ document.querySelectorAll(".tab").forEach((btn) => {
   });
 });
 
+// ------------------ TRUTH TABLE ------------------
+function renderTruthTable(values, numVars) {
+  const container = document.getElementById("truthView");
+
+  // keep title, remove old table only
+  container.querySelectorAll("table").forEach((t) => t.remove());
+
+  const table = document.createElement("table");
+
+  // Header
+  const header = document.createElement("tr");
+
+  for (let i = 0; i < numVars; i++) {
+    const th = document.createElement("th");
+    th.textContent = String.fromCharCode(65 + i); // A, B, C...
+    header.appendChild(th);
+  }
+
+  const out = document.createElement("th");
+  out.textContent = "F";
+  header.appendChild(out);
+
+  table.appendChild(header);
+
+  // Rows
+  values.forEach((v, i) => {
+    const row = document.createElement("tr");
+
+    for (let j = numVars - 1; j >= 0; j--) {
+      const td = document.createElement("td");
+      td.textContent = (i >> j) & 1;
+      row.appendChild(td);
+    }
+
+    const td = document.createElement("td");
+    td.textContent = v;
+    row.appendChild(td);
+
+    table.appendChild(row);
+  });
+
+  container.appendChild(table);
+}
+
 // ------------------ CUSTOM TOOLTIP ------------------
 const tooltip = document.createElement("div");
 tooltip.style.position = "absolute";
@@ -162,160 +206,6 @@ function checkHardcoded(input, numVars) {
   }
   return null;
 }
-
-// ------------------ SOLVE BUTTON ------------------
-solveBtn.addEventListener("click", () => {
-  const input = document.getElementById("minterms").value;
-  const numVars = Number(document.getElementById("numVars").value);
-  const layout = kmapLayouts[numVars];
-  const maxIndex = Math.pow(2, numVars) - 1;
-
-  document.querySelectorAll(".cell").forEach((c) => {
-    c.textContent = c.dataset.index;
-    c.style.backgroundColor = "#1e293b";
-    c.style.outline = "";
-    c.style.boxShadow = "";
-    c.removeAttribute("title");
-  });
-
-  const hasPOS = /POS\(/i.test(input);
-  const values = new Array(Math.pow(2, numVars)).fill(hasPOS ? "1" : "0");
-
-  const regex = /(SOP|POS|D)\(([^)]+)\)/gi;
-  let match;
-
-  while ((match = regex.exec(input)) !== null) {
-    const type = match[1].toUpperCase();
-    const nums = match[2].replace(/\s+/g, "").split(",").map(Number);
-
-    nums.forEach((n) => {
-      if (n < 0 || n > maxIndex) {
-        alert(`Number out of bounds (0-${maxIndex})`);
-        return;
-      }
-      if (type === "SOP") values[n] = "1";
-      else if (type === "POS") values[n] = "0";
-      else if (type === "D") values[n] = "X";
-    });
-  }
-
-  values.forEach((v, i) => {
-    const cell = document.querySelector(`.cell[data-index="${i}"]`);
-    if (cell) cell.textContent = v;
-  });
-
-  values.forEach((v, i) => {
-    if (v === "X") {
-      const cell = document.querySelector(`.cell[data-index="${i}"]`);
-      if (cell) {
-        cell.style.backgroundColor = "rgba(248,113,113,1)";
-        cell.style.fontWeight = "bold";
-      }
-    }
-  });
-
-  let result = checkHardcoded(input, numVars);
-
-  if (!result) {
-    result = hasPOS
-      ? simplifyPOS(values, numVars, layout)
-      : simplify(values, numVars, layout);
-  }
-
-  const { terms, groups } = result;
-
-  const overlapMap = {};
-  const groupMap = {};
-
-  if (groups && groups.length) {
-    groups.forEach((group, idx) => {
-      const color = groupColors[idx % groupColors.length];
-
-      group.forEach((cellRef) => {
-        let index;
-
-        if (Array.isArray(cellRef)) {
-          const [r, c] = cellRef;
-          index = layout.cellNumbers[r][c];
-        } else {
-          index = cellRef;
-        }
-
-        const cell = document.querySelector(`.cell[data-index="${index}"]`);
-        if (!cell) return;
-
-        overlapMap[index] = (overlapMap[index] || 0) + 1;
-
-        if (!groupMap[index]) groupMap[index] = [];
-        groupMap[index].push(idx + 1);
-
-        // Apply normal group color first
-        cell.style.backgroundColor = color;
-
-        // ------------------ OVERLAP HANDLING ------------------
-        if (overlapMap[index] > 1) {
-          cell.style.backgroundColor = "rgba(255,0,255,0.7)"; // distinct magenta
-          cell.style.outline = "3px solid white";
-          cell.style.boxShadow = "0 0 10px white";
-          cell.textContent = "Overlap";
-          cell.style.fontSize = "12px"; // decrease font size
-          cell.style.fontWeight = "bold";
-          cell.style.lineHeight = "1"; // optional: tighter line spacing
-
-          // create tooltip for overlap
-          const normalTooltip = groupMap[index]
-            .map((g) => `Group ${g}`)
-            .join(" & ");
-          const overlapTooltip = normalTooltip + " (Overlap!)";
-
-          cell.addEventListener("mousemove", (e) => {
-            showTooltip(overlapTooltip, e.pageX, e.pageY);
-          });
-          cell.addEventListener("mouseleave", () => {
-            hideTooltip();
-          });
-          cell.addEventListener("click", (e) => {
-            const x = e.pageX || (e.touches && e.touches[0].pageX) || 0;
-            const y = e.pageY || (e.touches && e.touches[0].pageY) || 0;
-            showTooltip(overlapTooltip, x, y);
-            setTimeout(() => hideTooltip(), 1500);
-          });
-        }
-      });
-    });
-
-    Object.keys(groupMap).forEach((index) => {
-      const cell = document.querySelector(`.cell[data-index="${index}"]`);
-      if (!cell) return;
-
-      const groupsList = groupMap[index].map((g) => `Group ${g}`).join(" & ");
-
-      // CUSTOM TOOLTIP EVENTS (REPLACES title ONLY)
-      cell.addEventListener("mousemove", (e) => {
-        showTooltip(groupsList, e.pageX, e.pageY);
-      });
-
-      cell.addEventListener("mouseleave", () => {
-        hideTooltip();
-      });
-
-      cell.addEventListener("click", (e) => {
-        const x = e.pageX || (e.touches && e.touches[0].pageX) || 0;
-        const y = e.pageY || (e.touches && e.touches[0].pageY) || 0;
-
-        showTooltip(groupsList, x, y);
-
-        setTimeout(() => {
-          hideTooltip();
-        }, 1500);
-      });
-    });
-  }
-
-  output.textContent = terms.length
-    ? `F = ${terms.join(hasPOS ? " * " : " + ")}`
-    : "F = ?";
-});
 
 // ------------------ SIMPLIFY ------------------
 function simplify(values, numVars, layout) {
@@ -479,6 +369,161 @@ options.querySelectorAll("div").forEach((opt) => {
 
 document.addEventListener("click", (e) => {
   if (!dropdown.contains(e.target)) options.style.display = "none";
+});
+
+// ------------------ SOLVE BUTTON ------------------
+solveBtn.addEventListener("click", () => {
+  const input = document.getElementById("minterms").value;
+  const numVars = Number(document.getElementById("numVars").value);
+  const layout = kmapLayouts[numVars];
+  const maxIndex = Math.pow(2, numVars) - 1;
+
+  document.querySelectorAll(".cell").forEach((c) => {
+    c.textContent = c.dataset.index;
+    c.style.backgroundColor = "#1e293b";
+    c.style.outline = "";
+    c.style.boxShadow = "";
+    c.removeAttribute("title");
+  });
+
+  const hasPOS = /POS\(/i.test(input);
+  const values = new Array(Math.pow(2, numVars)).fill(hasPOS ? "1" : "0");
+
+  const regex = /(SOP|POS|D)\(([^)]+)\)/gi;
+  let match;
+
+  while ((match = regex.exec(input)) !== null) {
+    const type = match[1].toUpperCase();
+    const nums = match[2].replace(/\s+/g, "").split(",").map(Number);
+
+    nums.forEach((n) => {
+      if (n < 0 || n > maxIndex) {
+        alert(`Number out of bounds (0-${maxIndex})`);
+        return;
+      }
+      if (type === "SOP") values[n] = "1";
+      else if (type === "POS") values[n] = "0";
+      else if (type === "D") values[n] = "X";
+    });
+  }
+
+  values.forEach((v, i) => {
+    const cell = document.querySelector(`.cell[data-index="${i}"]`);
+    if (cell) cell.textContent = v;
+  });
+
+  values.forEach((v, i) => {
+    if (v === "X") {
+      const cell = document.querySelector(`.cell[data-index="${i}"]`);
+      if (cell) {
+        cell.style.backgroundColor = "rgba(248,113,113,1)";
+        cell.style.fontWeight = "bold";
+      }
+    }
+  });
+
+  let result = checkHardcoded(input, numVars);
+
+  if (!result) {
+    result = hasPOS
+      ? simplifyPOS(values, numVars, layout)
+      : simplify(values, numVars, layout);
+  }
+
+  const { terms, groups } = result;
+
+  const overlapMap = {};
+  const groupMap = {};
+
+  if (groups && groups.length) {
+    groups.forEach((group, idx) => {
+      const color = groupColors[idx % groupColors.length];
+
+      group.forEach((cellRef) => {
+        let index;
+
+        if (Array.isArray(cellRef)) {
+          const [r, c] = cellRef;
+          index = layout.cellNumbers[r][c];
+        } else {
+          index = cellRef;
+        }
+
+        const cell = document.querySelector(`.cell[data-index="${index}"]`);
+        if (!cell) return;
+
+        overlapMap[index] = (overlapMap[index] || 0) + 1;
+
+        if (!groupMap[index]) groupMap[index] = [];
+        groupMap[index].push(idx + 1);
+
+        // Apply normal group color first
+        cell.style.backgroundColor = color;
+
+        // ------------------ OVERLAP HANDLING ------------------
+        if (overlapMap[index] > 1) {
+          cell.style.backgroundColor = "rgba(255,0,255,0.7)"; // distinct magenta
+          cell.style.outline = "3px solid white";
+          cell.style.boxShadow = "0 0 10px white";
+          cell.textContent = "Overlap";
+          cell.style.fontSize = "12px"; // decrease font size
+          cell.style.fontWeight = "bold";
+          cell.style.lineHeight = "1"; // optional: tighter line spacing
+
+          // create tooltip for overlap
+          const normalTooltip = groupMap[index]
+            .map((g) => `Group ${g}`)
+            .join(" & ");
+          const overlapTooltip = normalTooltip + " (Overlap!)";
+
+          cell.addEventListener("mousemove", (e) => {
+            showTooltip(overlapTooltip, e.pageX, e.pageY);
+          });
+          cell.addEventListener("mouseleave", () => {
+            hideTooltip();
+          });
+          cell.addEventListener("click", (e) => {
+            const x = e.pageX || (e.touches && e.touches[0].pageX) || 0;
+            const y = e.pageY || (e.touches && e.touches[0].pageY) || 0;
+            showTooltip(overlapTooltip, x, y);
+            setTimeout(() => hideTooltip(), 1500);
+          });
+        }
+      });
+    });
+
+    Object.keys(groupMap).forEach((index) => {
+      const cell = document.querySelector(`.cell[data-index="${index}"]`);
+      if (!cell) return;
+
+      const groupsList = groupMap[index].map((g) => `Group ${g}`).join(" & ");
+
+      // CUSTOM TOOLTIP EVENTS (REPLACES title ONLY)
+      cell.addEventListener("mousemove", (e) => {
+        showTooltip(groupsList, e.pageX, e.pageY);
+      });
+
+      cell.addEventListener("mouseleave", () => {
+        hideTooltip();
+      });
+
+      cell.addEventListener("click", (e) => {
+        const x = e.pageX || (e.touches && e.touches[0].pageX) || 0;
+        const y = e.pageY || (e.touches && e.touches[0].pageY) || 0;
+
+        showTooltip(groupsList, x, y);
+
+        setTimeout(() => {
+          hideTooltip();
+        }, 1500);
+      });
+    });
+  }
+
+  output.textContent = terms.length
+    ? `F = ${terms.join(hasPOS ? " * " : " + ")}`
+    : "F = ?";
+  renderTruthTable(values, numVars);
 });
 
 // ------------------ INIT ------------------
