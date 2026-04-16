@@ -466,7 +466,12 @@ selected.addEventListener("click", () => {
 
 options.querySelectorAll("div").forEach((opt) => {
   opt.addEventListener("click", () => {
-    selected.childNodes[0].textContent = opt.textContent; // update only text, keep arrow
+    // Extract arrow if it exists
+    const arrow = selected.textContent.includes("▼") ? " ▼" : "";
+
+    // Update text while preserving arrow
+    selected.textContent = opt.textContent + arrow;
+
     hiddenInput.value = opt.dataset.value;
     options.style.display = "none";
   });
