@@ -73,6 +73,147 @@ function renderTruthTable(values, numVars) {
   container.appendChild(table);
 }
 
+// ------------------ EXPRESSION PANEL ------------------
+function renderExpression(terms, hasPOS) {
+  const container = document.getElementById("expressionView");
+
+  container.querySelectorAll("div").forEach((el) => el.remove());
+
+  const wrapper = document.createElement("div");
+
+  const formatted = terms.length ? terms.join(hasPOS ? " · " : " + ") : "?";
+
+  // Standard
+  const std = document.createElement("p");
+  std.innerHTML = `<strong>Standard:</strong> F = ${formatted}`;
+  wrapper.appendChild(std);
+
+  // NAND
+  const nand = document.createElement("p");
+  nand.innerHTML = `<strong>NAND Only:</strong> ${toNAND(terms, hasPOS)}`;
+  wrapper.appendChild(nand);
+
+  // NOR
+  const nor = document.createElement("p");
+  nor.innerHTML = `<strong>NOR Only:</strong> ${toNOR(terms, hasPOS)}`;
+  wrapper.appendChild(nor);
+
+  container.appendChild(wrapper);
+}
+
+// ------------------ HELPERS ------------------
+function splitTerm(term) {
+  const parts = [];
+  let current = "";
+
+  for (let i = 0; i < term.length; i++) {
+    current += term[i];
+
+    if (term[i] !== "'") {
+      if (term[i + 1] !== "'") {
+        parts.push(current);
+        current = "";
+      }
+    } else {
+      parts.push(current);
+      current = "";
+    }
+  }
+
+  return parts;
+}
+
+function nandInvert(x) {
+  return `NAND(${x},${x})`;
+}
+
+function norInvert(x) {
+  return `NOR(${x},${x})`;
+}
+
+// ------------------ NAND ------------------
+function toNAND(terms, hasPOS) {
+  if (!terms.length) return "?";
+
+  // SOP → NAND (already correct)
+  if (!hasPOS) {
+    const nandTerms = terms.map((term) => {
+      const vars = splitTerm(term).map((v) => {
+        if (v.includes("'")) {
+          const base = v.replace("'", "");
+          return nandInvert(base);
+        }
+        return v;
+      });
+
+      return `NAND(${vars.join(",")})`;
+    });
+
+    return `NAND(${nandTerms.join(", ")})`;
+  }
+
+  // 🔥 POS → NAND (NEW)
+  const nandTerms = terms.map((term) => {
+    const clean = term.replace(/[()]/g, "");
+    const vars = clean.split("+").map((v) => v.trim());
+
+    const processed = vars.map((v) => {
+      if (v.includes("'")) {
+        const base = v.replace("'", "");
+        return nandInvert(base);
+      }
+      return v;
+    });
+
+    // (A + B) → NAND(A,B) then inverted logic handled by outer NAND
+    return `NAND(${processed.join(",")})`;
+  });
+
+  return `NAND(${nandTerms.join(", ")})`;
+}
+
+// ------------------ NOR ------------------
+function toNOR(terms, hasPOS) {
+  if (!terms.length) return "?";
+
+  // POS → NOR (already correct)
+  if (hasPOS) {
+    const norTerms = terms.map((term) => {
+      const clean = term.replace(/[()]/g, "");
+      const vars = clean.split("+").map((v) => v.trim());
+
+      const processed = vars.map((v) => {
+        if (v.includes("'")) {
+          const base = v.replace("'", "");
+          return norInvert(base);
+        }
+        return v;
+      });
+
+      return `NOR(${processed.join(",")})`;
+    });
+
+    return `NOR(${norTerms.join(", ")})`;
+  }
+
+  // 🔥 SOP → NOR (NEW)
+  const norTerms = terms.map((term) => {
+    const vars = splitTerm(term).map((v) => {
+      if (v.includes("'")) {
+        const base = v.replace("'", "");
+        return norInvert(base);
+      }
+      return v;
+    });
+
+    // A·B = (A' + B')' → NOR form
+    const invertedInputs = vars.map((v) => `NOR(${v},${v})`);
+    return `NOR(${invertedInputs.join(",")})`;
+  });
+
+  return `NOR(${norTerms.join(", ")})`;
+}
+
 // ------------------ CUSTOM TOOLTIP ------------------
 const tooltip = document.createElement("div");
 tooltip.style.position = "absolute";
@@ -524,6 +665,7 @@ solveBtn.addEventListener("click", () => {
     ? `F = ${terms.join(hasPOS ? " * " : " + ")}`
     : "F = ?";
   renderTruthTable(values, numVars);
+  renderExpression(terms, hasPOS);
 });
 
 // ------------------ INIT ------------------
