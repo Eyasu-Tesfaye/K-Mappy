@@ -17,6 +17,32 @@ body {
   text-align: center;
 }
 
+/* Tabs */
+.tabs {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 20px;
+  gap: 10px;
+}
+
+.tab {
+  padding: 8px 15px;
+  border-radius: 8px;
+  border: none;
+  background: #1e293b;
+  color: white;
+  cursor: pointer;
+}
+
+.tab.active {
+  background: #38bdf8;
+  color: black;
+}
+
+.hidden {
+  display: none;
+}
+
 /* Input */
 .input-section {
   margin-bottom: 20px;

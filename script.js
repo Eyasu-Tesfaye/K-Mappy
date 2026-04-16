@@ -11,6 +11,24 @@ const groupColors = [
   "rgba(192,132,252,1)",
 ];
 
+// ------------------ TAB SYSTEM ------------------
+document.querySelectorAll(".tab").forEach((btn) => {
+  btn.addEventListener("click", () => {
+    document
+      .querySelectorAll(".tab")
+      .forEach((b) => b.classList.remove("active"));
+    btn.classList.add("active");
+
+    const tab = btn.dataset.tab;
+
+    ["kmap", "truth", "expression", "circuit"].forEach((id) => {
+      document.getElementById(id + "View").classList.add("hidden");
+    });
+
+    document.getElementById(tab + "View").classList.remove("hidden");
+  });
+});
+
 // ------------------ CUSTOM TOOLTIP ------------------
 const tooltip = document.createElement("div");
 tooltip.style.position = "absolute";
@@ -272,7 +290,7 @@ solveBtn.addEventListener("click", () => {
 
       const groupsList = groupMap[index].map((g) => `Group ${g}`).join(" & ");
 
-      // ✅ CUSTOM TOOLTIP EVENTS (REPLACES title ONLY)
+      // CUSTOM TOOLTIP EVENTS (REPLACES title ONLY)
       cell.addEventListener("mousemove", (e) => {
         showTooltip(groupsList, e.pageX, e.pageY);
       });

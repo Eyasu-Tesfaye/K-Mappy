@@ -7,46 +7,66 @@
     <link rel="stylesheet" href="style.css" />
     <link rel="icon" href="k-logo.png" sizes="32x32" />
   </head>
-     <div class="big-container"> 
+
+  <body>
+    <div class="big-container">
       <div class="container">
-      <h1>K-Mappy</h1>
+        <h1>K-Mappy</h1>
 
-      <!-- Variable selection -->
-      <div class="variable-selector">
-        <label for="numVars">Number of Variables:</label>
-
-        <!-- Custom Dropdown -->
-        <div class="custom-dropdown" id="numVarsDropdown">
-          <div class="selected">3 Variables <span class="arrow">&#9662;</span></div>
-          <div class="options">
-            <div data-value="2">2 Variables</div>
-            <div data-value="3">3 Variables</div>
-            <div data-value="4">4 Variables</div>
-          </div>
+        <!-- Tabs -->
+        <div class="tabs">
+          <button class="tab active" data-tab="kmap">K-map</button>
+          <button class="tab" data-tab="truth">Truth Table</button>
+          <button class="tab" data-tab="expression">Expression</button>
+          <button class="tab" data-tab="circuit">Circuit</button>
         </div>
-        <input type="hidden" id="numVars" value="3">
 
-        <button id="generateBtn">Generate K-map</button>
-      </div>
+        <!-- Variable selection -->
+        <div class="variable-selector">
+          <label>Variables:</label>
+          <div class="custom-dropdown" id="numVarsDropdown">
+            <div class="selected">3 Variables ▼</div>
+            <div class="options">
+              <div data-value="2">2 Variables</div>
+              <div data-value="3">3 Variables</div>
+              <div data-value="4">4 Variables</div>
+            </div>
+          </div>
+          <input type="hidden" id="numVars" value="3" />
+          <button id="generateBtn">Generate</button>
+        </div>
 
-      <!-- Input for SOP/POS/D -->
-      <div class="input-section">
-        <input type="text" id="minterms" placeholder="Enter SOP/POS/D" />
-        <button id="solveBtn">Solve</button>
-      </div>
+        <!-- Input -->
+        <div class="input-section">
+          <input type="text" id="minterms" placeholder="Enter SOP/POS/D" />
+          <button id="solveBtn">Solve</button>
+        </div>
 
-      <!-- K-map container -->
-      <div id="kmap" class="kmap-container"></div>
-      <div class="result">
-        <h2>Result:</h2>
-        <p id="output">F = ?</p>
+        <!-- Views -->
+        <div id="kmapView">
+          <div id="kmap" class="kmap-container"></div>
+        </div>
+
+        <div id="truthView" class="hidden">
+          <h2>Truth Table</h2>
+        </div>
+
+        <div id="expressionView" class="hidden">
+          <h2>Expression</h2>
+        </div>
+
+        <div id="circuitView" class="hidden">
+          <h2>Circuit</h2>
+        </div>
+
+        <!-- Result -->
+        <div class="result">
+          <h2>Result:</h2>
+          <p id="output">F = ?</p>
+        </div>
       </div>
     </div>
-  </div>
 
     <script src="script.js"></script>
-    <footer class="footer">
-      <p>© 2026 K-Mappy | Developed by Eyasu Tesfaye | Powered by sheer Patience </p>
-    </footer>
   </body>
 </html>
